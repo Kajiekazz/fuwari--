@@ -1,0 +1,136 @@
+---
+import MainGridLayout from "@layouts/MainGridLayout.astro";
+import { Icon } from "astro-icon/components";
+import type { SponsorsData } from "@/types/data";
+import sponsorsData from "@/data/sponsors.json";
+
+const { sponsors } = sponsorsData as SponsorsData;
+---
+
+<MainGridLayout title="赞助支持">
+    <div class="card-base p-6 md:p-8">
+        <div class="flex items-center gap-2 mb-6">
+            <div class="h-8 w-8 rounded-lg bg-[var(--primary)] flex items-center justify-center text-white dark:text-black/70">
+                <Icon name="material-symbols:favorite" class="text-[1.5rem]"></Icon>
+            </div>
+            <h1 class="text-2xl font-bold text-black dark:text-white">赞助支持</h1>
+        </div>
+
+        <div class="mb-6">
+            <p class="text-lg text-black/80 dark:text-white/80 mb-3">
+                如果您觉得我的内容对您有帮助，欢迎通过以下方式支持我的创作。您的每一份支持都是我持续创作的动力！
+            </p>
+            <p class="text-sm text-black/60 dark:text-white/60">
+                所有赞助将用于网站维护、服务器费用以及内容创作。
+            </p>
+        </div>
+
+        <!-- 主要赞助方式 -->
+        <div class="flex justify-center mb-6">
+            <div class="w-full max-w-sm">
+                <!-- 爱发电 -->
+                <!-- 【已修复】将 'group' 从 CSS 移到了这里的 class 中 -->
+                <div class="donate-card group">
+                    <!-- 【重要】请将下面的 href 链接替换为您自己的爱发电主页地址 -->
+                    <a href="https://afdian.com/a/moeku" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center justify-center h-full text-center p-6">
+                        <div class="h-16 w-16 rounded-lg bg-pink-500 flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110">
+                            <Icon name="simple-icons:afdian" class="text-[2.5rem] text-white"></Icon>
+                        </div>
+                        <h3 class="text-xl font-bold text-black dark:text-white">爱发电</h3>
+                        <p class="text-sm text-black/60 dark:text-white/60 mt-1">点击前往赞助</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 其他支持方式 -->
+        <div class="card-base p-6 mb-6">
+            <h2 class="text-xl font-bold text-black dark:text-white mb-3">其他支持方式</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="support-card">
+                    <div class="flex items-center gap-2 mb-2">
+                        <Icon name="material-symbols:share" class="text-[1.2rem] text-[var(--primary)]"></Icon>
+                        <span class="font-semibold text-black dark:text-white">分享推荐</span>
+                    </div>
+                    <p class="text-sm text-black/60 dark:text-white/60">
+                        将我的博客分享给更多朋友
+                    </p>
+                </div>
+
+                <div class="support-card">
+                    <div class="flex items-center gap-2 mb-2">
+                        <Icon name="material-symbols:comment" class="text-[1.2rem] text-[var(--primary)]"></Icon>
+                        <span class="font-semibold text-black dark:text-white">留言互动</span>
+                    </div>
+                    <p class="text-sm text-black/60 dark:text-white/60">
+                        在文章下方留下您的想法
+                    </p>
+                </div>
+
+                <div class="support-card">
+                    <div class="flex items-center gap-2 mb-2">
+                        <Icon name="material-symbols:star" class="text-[1.2rem] text-[var(--primary)]"></Icon>
+                        <span class="font-semibold text-black dark:text-white">关注订阅</span>
+                    </div>
+                    <p class="text-sm text-black/60 dark:text-white/60">
+                        订阅RSS或关注社交媒体
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 已赞助的小伙伴 -->
+        <div class="sponsors-section card-base p-6">
+            <h2 class="text-xl font-bold text-black dark:text-white mb-3 flex items-center gap-2">
+                <Icon name="material-symbols:group" class="text-[1.5rem] text-[var(--primary)]"></Icon>
+                <span>已赞助的小伙伴</span>
+            </h2>
+            <p class="text-sm text-black/60 dark:text-white/60 mb-4">
+            如果您已赞助，并且想加入赞助名单，请自行提交PR <a target="_blank" href="https://github.com/Kajiekazz/fuwari--/edit/main/src/data/sponsors.json" class="transition link text-[var(--primary)] font-medium underline">点击这里提交</a>
+            </p>
+            <div class="sponsors-grid">
+                {sponsors.map((sponsor) => (
+                    <div class="sponsor-card">
+                        <div class="flex items-center gap-3 p-4 rounded-lg bg-[var(--card-bg)] border border-black/10 dark:border-white/10">
+                            <div class="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
+                                {sponsor.avatar ? (
+                                    <img src={sponsor.avatar} alt={`${sponsor.name}的头像`} loading="lazy" class="w-full h-full object-cover" />
+                                ) : (
+                                    <Icon name="material-symbols:person" class="text-gray-500 dark:text-gray-400 text-[1.2rem]" />
+                                )}
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-black dark:text-white text-sm">{sponsor.name}</h4>
+                                <p class="text-xs text-black/60 dark:text-white/60">{sponsor.date}</p>
+                            </div>
+                            <div class="text-xs text-[var(--primary)] font-medium">{sponsor.amount}</div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    </div>
+</MainGridLayout>
+
+<style>
+.donate-card {
+    /* 【已修复】'group' 已从此行移除 */
+    @apply rounded-lg bg-[var(--card-bg)] border border-black/10 dark:border-white/10 hover:border-[var(--primary)] dark:hover:border-[var(--primary)] hover:shadow-lg transition-all duration-300;
+}
+
+.support-card {
+    @apply p-4 rounded-lg bg-[var(--card-bg)] hover:bg-black/5 dark:hover:bg-white/5 transition;
+}
+
+.sponsors-section {
+    @apply mt-6;
+}
+
+.sponsors-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+}
+
+.sponsor-card {
+    @apply transition-all duration-200 hover:shadow-md hover:scale-105;
+}
+</style>
