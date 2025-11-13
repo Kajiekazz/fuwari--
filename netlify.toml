@@ -1,4 +1,4 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "frame-src https://giscus.app https://www.youtube.com https://player.bilibili.com https://cloud.guguwo.top https://eopfapi.2b2x.cn"
+    Content-Security-Policy = "frame-src https://giscus.app https://www.youtube.com https://player.bilibili.com https://cloud.guguwo.top https://eopfapi.2b2x.cn https://www.bilibili.com"
