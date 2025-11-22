@@ -7,6 +7,7 @@ import { i18n } from "../i18n/translation";
 import { getDir } from "../utils/url-utils";
 import ImageWrapper from "./misc/ImageWrapper.astro";
 import PostMetadata from "./PostMeta.astro";
+import { umamiConfig, statsConfig } from "@/config";
 
 interface Props {
 	class?: string;
@@ -37,11 +38,10 @@ const {
 const className = Astro.props.class;
 
 const hasCover = image !== undefined && image !== null && image !== "";
-
 const coverWidth = "28%";
-
 const { remarkPluginFrontmatter } = await entry.render();
 ---
+
 <div class:list={["card-base flex flex-col-reverse md:flex-col w-full rounded-[var(--radius-large)] overflow-hidden relative", className]} style={style}>
     <div class:list={["pl-6 md:pl-9 pr-6 md:pr-2 pt-6 md:pt-7 pb-6 relative", {"w-full md:w-[calc(100%_-_52px_-_12px)]": !hasCover, "w-full md:w-[calc(100%_-_var(--coverWidth)_-_12px)]": hasCover}]}>
         <a href={url}
@@ -73,6 +73,13 @@ const { remarkPluginFrontmatter } = await entry.render();
             <div>
                 {remarkPluginFrontmatter.minutes} {" " + i18n(remarkPluginFrontmatter.minutes === 1 ? I18nKey.minuteCount : I18nKey.minutesCount)}
             </div>
+            <!-- 【新增】列表页浏览量显示 -->
+            {umamiConfig?.enable && (
+                <>
+                    <div>|</div>
+                    <div id={`page-views-${entry.slug}`}>{statsConfig.loadingText}</div>
+                </>
+            )}
         </div>
 
     </div>
@@ -105,6 +112,79 @@ const { remarkPluginFrontmatter } = await entry.render();
     }
 </div>
 <div class="transition border-t-[1px] border-dashed mx-6 border-black/10 dark:border-white/[0.15] last:border-t-0 md:hidden"></div>
+
+<!-- 【新增】Umami 统计脚本 (列表页) -->
+{umamiConfig?.enable && (
+<script is:inline define:vars={{ slug: entry.slug, umamiConfig, unavailableText: statsConfig.unavailableText, viewsText: statsConfig.viewsText, visitsText: statsConfig.visitsText }}>
+    // --- 补全缺失的工具函数 ---
+    const CACHE_KEY = 'umami_share_token';
+    
+    function clearUmamiShareCache() {
+        localStorage.removeItem(CACHE_KEY);
+    }
+
+    async function getUmamiShareData(baseUrl, shareId) {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+            const data = JSON.parse(cached);
+            if (data.expires > Date.now()) {
+                return data.value;
+            }
+        }
+        const res = await fetch(`${baseUrl}/api/share/${shareId}`);
+        if (!res.ok) throw new Error('Failed to fetch share token');
+        const data = await res.json();
+        const result = { websiteId: data.websiteId, token: data.token };
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+            value: result,
+            expires: Date.now() + 24 * 60 * 60 * 1000
+        }));
+        return result;
+    }
+    // -------------------------
+
+    function generateStatsText(pageViews, visits) {
+        return `${viewsText} ${pageViews} · ${visitsText} ${visits}`;
+    }
+    
+    async function fetchPostCardViews(isRetry = false) {
+        try {
+            const { websiteId, token } = await getUmamiShareData(umamiConfig.baseUrl, umamiConfig.shareId);
+            const currentTimestamp = Date.now();
+            const statsUrl = `${umamiConfig.baseUrl}/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}&url=%2Fposts%2F${slug}%2F`;
+            
+            const statsResponse = await fetch(statsUrl, {
+                headers: { 'x-umami-share-token': token }
+            });
+            
+            if (!statsResponse.ok) {
+                if (statsResponse.status === 401 && !isRetry) {
+                    clearUmamiShareCache();
+                    return fetchPostCardViews(true);
+                }
+                throw new Error('获取统计数据失败');
+            }
+            
+            const statsData = await statsResponse.json();
+            const pageViews = statsData.pageviews?.value || statsData.pageviews || 0;
+            const visits = statsData.visitors?.value || statsData.visitors || 0;
+            
+            const displayElement = document.getElementById(`page-views-${slug}`);
+             if (displayElement) {
+                 displayElement.textContent = generateStatsText(pageViews, visits);
+             }
+        } catch (error) {
+            console.error('Error fetching page views for', slug, ':', error);
+            const displayElement = document.getElementById(`page-views-${slug}`);
+            if (displayElement) {
+                displayElement.textContent = unavailableText;
+            }
+        }
+    }
+
+    fetchPostCardViews();
+</script>
+)}
 
 <style define:vars={{coverWidth}}>
 </style>
