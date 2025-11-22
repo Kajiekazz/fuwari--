@@ -1,51 +1,56 @@
 import type {
     ExpressiveCodeConfig,
-	GitHubEditConfig,   // 【新增】
-	ImageFallbackConfig,// 【新增】
 	LicenseConfig,
 	NavBarConfig,
 	ProfileConfig,
 	SiteConfig,
-	UmamiConfig,        // 【新增】
+	UmamiConfig,
 } from "./types/config";
 import { LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
 	title: "Moeku's Blog",
 	subtitle: "技术分享与实践",
-	description: "分享网络技术",
+	description:
+		"分享网络技术",
+
 	keywords: [],
-	lang: "zh_CN",
+	lang: "zh_CN", // 'en', 'zh_CN', 'zh_TW', 'ja', 'ko', 'es', 'th'
 	themeColor: {
-		hue: 361,
-		fixed: false,
+		hue: 361, // Default hue for the theme color, from 0 to 360. e.g. red: 0, teal: 200, cyan: 250, pink: 345
+		fixed: false, // Hide the theme color picker for visitors
 	},
 	banner: {
 		enable: false,
-		src: "/xinghui.avif",
-		position: "center",
+		src: "/xinghui.avif", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
+
+		position: "center", // Equivalent to object-position, only supports 'top', 'center', 'bottom'. 'center' by default
 		credit: {
-			enable: true,
-			text: "Pixiv @chokei",
-			url: "https://www.pixiv.net/artworks/122782209",
+			enable: true, // Display the credit text of the banner image
+			text: "Pixiv @chokei", // Credit text to be displayed
+
+			url: "https://www.pixiv.net/artworks/122782209", // (Optional) URL link to the original artwork or artist's page
 		},
 	},
 	background: {
-		enable: true,
-		src: "https://eopfapi.2b2x.cn/pic?img=ua",
-		position: "center",
-		size: "cover",
-		repeat: "no-repeat",
-		attachment: "fixed",
-		opacity: 0.5,
+		enable: true, // Enable background image
+		src: "https://eopfapi.2b2x.cn/pic?img=ua", // Background image URL (supports HTTPS)
+		position: "center", // Background position: 'top', 'center', 'bottom'
+		size: "cover", // Background size: 'cover', 'contain', 'auto'
+		repeat: "no-repeat", // Background repeat: 'no-repeat', 'repeat', 'repeat-x', 'repeat-y'
+		attachment: "fixed", // Background attachment: 'fixed', 'scroll', 'local'
+		opacity: 0.5, // Background opacity (0-1)
 	},
 	toc: {
-		enable: true,
-		depth: 2,
+		enable: true, // Display the table of contents on the right side of the post
+		depth: 2, // Maximum heading depth to show in the table, from 1 to 3
 	},
 	favicon: [
+		// Leave this array empty to use the default favicon
 		{
-			src: "https://q2.qlogo.cn/headimg_dl?dst_uin=719571357&spec=0",
+			src: "https://q2.qlogo.cn/headimg_dl?dst_uin=719571357&spec=0", // Path of the favicon, relative to the /public directory
+			//   theme: 'light',              // (Optional) Either 'light' or 'dark', set only if you have different favicons for light and dark mode
+			//   sizes: '32x32',              // (Optional) Size of the favicon, set only if you have favicons of different sizes
 		},
 	],
 };
@@ -57,29 +62,29 @@ export const navBarConfig: NavBarConfig = {
 		LinkPreset.About,
 		{
 			name: "友链",
-			url: "/friends/",
-			external: false,
+			url: "/friends/", // Internal links should not include the base path, as it is automatically added
+			external: false, // Show an external link icon and will open in a new tab
 		},
 		{
 			name: "赞助",
-			url: "/sponsors/",
-			external: false,
+			url: "/sponsors/", // Internal links should not include the base path, as it is automatically added
+			external: false, // Show an external link icon and will open in a new tab
 		},
 		{
 			name: "统计",
-			url: "https://cloud.umami.is/share/2g9iwbTAZ1Q9f4J1",
-			external: true,
+			url: "https://cloud.umami.is/share/2g9iwbTAZ1Q9f4J1", // Internal links should not include the base path, as it is automatically added
+			external: true, // Show an external link icon and will open in a new tab
 		},
 		{
 			name: "状态",
-			url: "https://stats.uptimerobot.com/9zzwJBVvvL",
-			external: true,
+			url: "https://stats.uptimerobot.com/9zzwJBVvvL", // Internal links should not include the base path, as it is automatically added
+			external: true, // Show an external link icon and will open in a new tab
 		},
 	],
 };
 
 export const profileConfig: ProfileConfig = {
-	avatar: "https://q2.qlogo.cn/headimg_dl?dst_uin=719571357&spec=0",
+	avatar: "https://q2.qlogo.cn/headimg_dl?dst_uin=719571357&spec=0", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
 	name: "卡介菌",
 	bio: "时光流转，愿你与珍爱之人再度重逢。",
 	links: [
@@ -112,28 +117,4 @@ export const statsConfig = {
 	loadingText: "统计加载中...",
 	unavailableText: "统计不可用。请检查是否屏蔽了Umami域名，如AdGuard和AdBlock等插件",
 	getStatsText: (pageViews: number, visits: number) => `${statsConfig.viewsText} ${pageViews} · ${statsConfig.visitsText} ${visits}`,
-};
-
-// =========== 以下是为您补全的缺失配置 ===========
-
-// 【新增】Umami 统计配置
-// 注意：shareId 填的是您的 Website ID (UUID)，用于 API 调用
-export const umamiConfig: UmamiConfig = {
-	enable: true,
-	baseUrl: "https://cloud.umami.is",
-	shareId: "310b95a5-41a7-4032-9118-54960f6bb57b", // 从您之前的代码中提取的 ID
-	timezone: "Asia/Shanghai",
-};
-
-// 【新增】GitHub 编辑按钮配置
-export const gitHubEditConfig: GitHubEditConfig = {
-	enable: true,
-	baseUrl: "https://github.com/Kajiekazz/fuwari--/blob/main/src/content/posts",
-};
-
-// 【新增】图片回源配置 (防止类型错误，默认禁用)
-export const imageFallbackConfig: ImageFallbackConfig = {
-	enable: false,
-	originalDomain: "",
-	fallbackDomain: "",
 };

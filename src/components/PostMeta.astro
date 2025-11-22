@@ -1,10 +1,9 @@
 ---
 import { Icon } from "astro-icon/components";
+import I18nKey from "../i18n/i18nKey";
+import { i18n } from "../i18n/translation";
 import { formatDateToYYYYMMDD } from "../utils/date-utils";
 import { getCategoryUrl, getTagUrl } from "../utils/url-utils";
-import { i18n } from "../i18n/translation";
-import I18nKey from "../i18n/i18nKey";
-import { umamiConfig, statsConfig } from "@/config";
 
 interface Props {
 	class: string;
@@ -14,7 +13,6 @@ interface Props {
 	category: string | null;
 	hideTagsForMobile?: boolean;
 	hideUpdateDate?: boolean;
-	slug?: string;
 }
 const {
 	published,
@@ -23,7 +21,6 @@ const {
 	category,
 	hideTagsForMobile = false,
 	hideUpdateDate = false,
-	slug,
 } = Astro.props;
 const className = Astro.props.class;
 ---
@@ -31,7 +28,8 @@ const className = Astro.props.class;
 <div class:list={["flex flex-wrap text-neutral-500 dark:text-neutral-400 items-center gap-4 gap-x-4 gap-y-2", className]}>
     <!-- publish date -->
     <div class="flex items-center">
-        <div class="meta-icon">
+        <div class="meta-icon"
+        >
             <Icon name="material-symbols:calendar-today-outline-rounded" class="text-xl"></Icon>
         </div>
         <span class="text-50 text-sm font-medium">{formatDateToYYYYMMDD(published)}</span>
@@ -40,7 +38,8 @@ const className = Astro.props.class;
     <!-- update date -->
     {!hideUpdateDate && updated && updated.getTime() !== published.getTime() && (
         <div class="flex items-center">
-            <div class="meta-icon">
+            <div class="meta-icon"
+            >
                 <Icon name="material-symbols:edit-calendar-outline-rounded" class="text-xl"></Icon>
             </div>
             <span class="text-50 text-sm font-medium">{formatDateToYYYYMMDD(updated)}</span>
@@ -49,7 +48,8 @@ const className = Astro.props.class;
 
     <!-- categories -->
     <div class="flex items-center">
-        <div class="meta-icon">
+        <div class="meta-icon"
+        >
             <Icon name="material-symbols:book-2-outline-rounded" class="text-xl"></Icon>
         </div>
         <div class="flex flex-row flex-nowrap items-center">
@@ -63,7 +63,8 @@ const className = Astro.props.class;
 
     <!-- tags -->
     <div class:list={["items-center", {"flex": !hideTagsForMobile, "hidden md:flex": hideTagsForMobile}]}>
-        <div class="meta-icon">
+        <div class="meta-icon"
+        >
             <Icon name="material-symbols:tag-rounded" class="text-xl"></Icon>
         </div>
         <div class="flex flex-row flex-nowrap items-center">
@@ -78,105 +79,4 @@ const className = Astro.props.class;
             {!(tags && tags.length > 0) && <div class="transition text-50 text-sm font-medium">{i18n(I18nKey.noTags)}</div>}
         </div>
     </div>
-
-    <!-- page views (遵循您的示例) -->
-    {slug && umamiConfig?.enable && (
-        <div class="flex items-center">
-            <div class="meta-icon">
-                <Icon name="material-symbols:visibility-outline-rounded" class="text-xl"></Icon>
-            </div>
-            <span class="text-50 text-sm font-medium" id="page-views-display">{statsConfig.loadingText}</span>
-        </div>
-    )}
 </div>
-
-{slug && umamiConfig?.enable && (
-    <script is:inline define:vars={{ slug, umamiConfig, unavailableText: statsConfig.unavailableText, viewsText: statsConfig.viewsText, visitsText: statsConfig.visitsText }}>
-        // --- 补全缺失的工具函数 ---
-        const CACHE_KEY = 'umami_share_token';
-        
-        function clearUmamiShareCache() {
-            localStorage.removeItem(CACHE_KEY);
-        }
-
-        async function getUmamiShareData(baseUrl, shareId) {
-            const cached = localStorage.getItem(CACHE_KEY);
-            if (cached) {
-                const data = JSON.parse(cached);
-                if (data.expires > Date.now()) {
-                    return data.value;
-                }
-            }
-
-            // 获取 Token
-            const res = await fetch(`${baseUrl}/api/share/${shareId}`);
-            if (!res.ok) throw new Error('Failed to fetch share token');
-            
-            const data = await res.json();
-            const result = { websiteId: data.websiteId, token: data.token };
-            
-            // 缓存 24 小时
-            localStorage.setItem(CACHE_KEY, JSON.stringify({
-                value: result,
-                expires: Date.now() + 24 * 60 * 60 * 1000
-            }));
-            
-            return result;
-        }
-        // -------------------------
-
-        // 客户端统计文案生成函数
-        function generateStatsText(pageViews, visits) {
-            return `${viewsText} ${pageViews} · ${visitsText} ${visits}`;
-        }
-        
-        // 获取访问量统计
-        async function fetchPageViews(isRetry = false) {
-            if (!umamiConfig.enable) return;
-            
-            try {
-                // 第一步：获取 Token
-                const { websiteId, token } = await getUmamiShareData(umamiConfig.baseUrl, umamiConfig.shareId);
-                
-                // 第二步：获取统计数据
-                const currentTimestamp = Date.now();
-                // 注意：这里使用了您示例中的 API 路径结构
-                const statsUrl = `${umamiConfig.baseUrl}/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}&url=%2Fposts%2F${slug}%2F`;
-                
-                const statsResponse = await fetch(statsUrl, {
-                    headers: {
-                        'x-umami-share-token': token
-                    }
-                });
-                
-                if (!statsResponse.ok) {
-                    if (statsResponse.status === 401 && !isRetry) {
-                        clearUmamiShareCache();
-                        return fetchPageViews(true);
-                    }
-                    throw new Error('获取统计数据失败');
-                }
-                
-                const statsData = await statsResponse.json();
-                const pageViews = statsData.pageviews?.value || statsData.pageviews || 0;
-                const visits = statsData.visitors?.value || statsData.visitors || 0;
-                
-                const displayElement = document.getElementById('page-views-display');
-                if (displayElement) {
-                    displayElement.textContent = generateStatsText(pageViews, visits);
-                }
-            } catch (error) {
-                console.error('Error fetching page views:', error);
-                const displayElement = document.getElementById('page-views-display');
-                if (displayElement) {
-                    displayElement.textContent = unavailableText;
-                }
-            }
-        }
-
-        // 页面加载完成后获取统计数据
-        fetchPageViews();
-        // 兼容 Swup 页面切换
-        document.addEventListener('swup:page:view', () => fetchPageViews());
-    </script>
-)}
