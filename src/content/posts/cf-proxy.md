@@ -2,7 +2,7 @@
 title: cloudflare使用wokers进行ip优选
 published: 2025-11-13
 description: '一份关于如何使用cf优选ip加速站点国内访问体验的教程'
-image: ''
+image: 'https://cloud.guguwo.top/d/picture-bed/18f7e46bd5dd4c20aa1c39f73f8841a4.webp'
 tags: ["cloudflare", "ip优选", "优化", "dns", "教程", "反代"]
 category: '教程'
 draft: false
