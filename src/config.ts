@@ -117,6 +117,7 @@ export const statsConfig = {
 	visitsText: "访客",
 	loadingText: "fucking loading...",
 	unavailableText: "统计不可用",
+	getStatsText: (pageViews: number, visits: number) => `${statsConfig.viewsText} ${pageViews} · ${statsConfig.visitsText} ${visits}`,
 };
 
 export const umamiConfig = {

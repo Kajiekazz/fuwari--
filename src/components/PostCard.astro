@@ -126,7 +126,9 @@ const { remarkPluginFrontmatter } = await entry.render();
             const websiteId = umamiConfig.websiteId;
             
             const currentTimestamp = Date.now();
-            const statsUrl = `${umamiConfig.baseUrl}/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}&url=${encodeURIComponent('/posts/' + slug + '/')}`;
+            
+            // 关键修改：加上 /analytics/us
+            const statsUrl = `${umamiConfig.baseUrl}/analytics/us/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}&url=${encodeURIComponent('/posts/' + slug + '/')}`;
             
             const headers = {};
             if (token) headers['x-umami-share-token'] = token;

@@ -82,6 +82,7 @@ export type UmamiConfig = {
 	baseUrl: string;
 	shareId: string;
 	timezone: string;
+    websiteId: string;
 };
 
 export type LIGHT_DARK_MODE =
