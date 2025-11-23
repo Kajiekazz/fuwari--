@@ -123,6 +123,7 @@ export const umamiConfig = {
   enable: true,
   baseUrl: "https://cloud.umami.is", 
   shareId: "2g9iwbTAZ1Q9f4J1", 
+  websiteId: "310b95a5-41a7-4032-9118-54960f6bb57b",
   timezone: "Asia/Shanghai",
 }
 

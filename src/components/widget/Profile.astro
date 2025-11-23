@@ -46,44 +46,39 @@ const config = profileConfig;
 </div>
 
 <script define:vars={{ umamiConfig, unavailableText: statsConfig.unavailableText, viewsText: statsConfig.viewsText, visitsText: statsConfig.visitsText }}>
-    // 获取全站访问量统计
-    // 客户端统计文案生成函数
     function generateStatsText(pageViews, visits) {
         return `${viewsText} ${pageViews} · ${visitsText} ${visits}`;
     }
     
     async function loadSiteStats() {
-        if (!umamiConfig.enable) {
-            return;
-        }
+        if (!umamiConfig.enable) return;
         
         try {
-            // 调用全局工具获取 Umami 分享数据
-            const { websiteId, token } = await getUmamiShareData(umamiConfig.baseUrl, umamiConfig.shareId);
+            // 1. 动态导入工具函数 (你之前的代码漏了这个)
+            const { getUmamiShareData, clearUmamiShareCache } = await import('/src/utils/umami.ts');
+
+            const { token } = await getUmamiShareData(umamiConfig.baseUrl, umamiConfig.shareId);
+            const websiteId = umamiConfig.websiteId;
             
-            // 第二步：获取全站统计数据（不指定url参数获取全站数据）
             const currentTimestamp = Date.now();
-            const statsUrl = `${umamiConfig.baseUrl}/analytics/us/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}&compare=false`;
+            // 2. 全站统计不带 url 参数
+            const statsUrl = `${umamiConfig.baseUrl}/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}`;
             
-            const statsResponse = await fetch(statsUrl, {
-                 headers: {
-                     'x-umami-share-token': token
-                 }
-             });
+            const headers = {};
+            if (token) headers['x-umami-share-token'] = token;
+
+            const statsResponse = await fetch(statsUrl, { headers });
             
             if (statsResponse.status === 401) {
-                // token 失效，清理缓存后重新获取一次
                 clearUmamiShareCache();
                 return await loadSiteStats();
             }
             
-            if (!statsResponse.ok) {
-                throw new Error('获取统计数据失败');
-            }
+            if (!statsResponse.ok) throw new Error('API Error');
             
             const statsData = await statsResponse.json();
-            const pageviews = statsData.pageviews || 0;
-            const visitors = statsData.visitors || 0;
+            const pageviews = statsData.pageviews?.value || statsData.pageviews || 0;
+            const visitors = statsData.visitors?.value || statsData.visitors || 0;
             
             const statsElement = document.getElementById('site-stats');
             if (statsElement) {
@@ -98,6 +93,5 @@ const config = profileConfig;
         }
     }
 
-    // 页面加载完成后获取统计数据
     document.addEventListener('DOMContentLoaded', loadSiteStats);
 </script>

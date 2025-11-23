@@ -4,7 +4,7 @@ import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
 import { formatDateToYYYYMMDD } from "../utils/date-utils";
 import { getCategoryUrl, getTagUrl } from "../utils/url-utils";
-import { umamiConfig, statsConfig } from "../config"; // 新增引用
+import { umamiConfig, statsConfig } from "../config";
 
 interface Props {
 	class: string;
@@ -14,7 +14,7 @@ interface Props {
 	category: string | null;
 	hideTagsForMobile?: boolean;
 	hideUpdateDate?: boolean;
-    slug?: string; // 新增：需要 slug 来查询数据
+    slug?: string;
 }
 const {
 	published,
@@ -23,7 +23,7 @@ const {
 	category,
 	hideTagsForMobile = false,
 	hideUpdateDate = false,
-    slug, // 新增
+    slug,
 } = Astro.props;
 const className = Astro.props.class;
 ---
@@ -79,7 +79,7 @@ const className = Astro.props.class;
         </div>
     </div>
 
-    <!-- page views (新增部分) -->
+    <!-- page views -->
     {slug && (
         <div class="flex items-center">
             <div class="meta-icon">
@@ -90,29 +90,26 @@ const className = Astro.props.class;
     )}
 </div>
 
-<!-- Script (新增部分) -->
 {slug && (
     <script define:vars={{ slug, umamiConfig, unavailableText: statsConfig.unavailableText, viewsText: statsConfig.viewsText, visitsText: statsConfig.visitsText }}>
-        // 客户端统计文案生成函数
         function generateStatsText(pageViews, visits) {
             return `${viewsText} ${pageViews} · ${visitsText} ${visits}`;
         }
         
-        // 获取访问量统计
         async function fetchPageViews(isRetry = false) {
-            if (!umamiConfig.enable) {
-                return;
-            }
+            if (!umamiConfig.enable) return;
             
             try {
-                // 注意：这里需要 getUmamiShareData 工具函数，请确保你添加了它
-                // 如果没有这个函数，你需要引入或者直接在这里写逻辑
-                // 假设你已经按照我下面的说明添加了 utils/umami.ts
                 const { getUmamiShareData, clearUmamiShareCache } = await import('/src/utils/umami.ts');
 
-                const { websiteId, token } = await getUmamiShareData(umamiConfig.baseUrl, umamiConfig.shareId);
+                // 1. 获取 Token
+                const { token } = await getUmamiShareData(umamiConfig.baseUrl, umamiConfig.shareId);
+                
+                // 2. 直接使用配置中的 websiteId
+                const websiteId = umamiConfig.websiteId;
                 
                 const currentTimestamp = Date.now();
+                // 3. 修正 API 路径和 URL 参数
                 const statsUrl = `${umamiConfig.baseUrl}/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}&url=${encodeURIComponent('/posts/' + slug + '/')}`;
                 
                 const headers = {};
@@ -120,17 +117,17 @@ const className = Astro.props.class;
 
                 const statsResponse = await fetch(statsUrl, { headers });
                 
-                if (!statsResponse.ok) {
-                    if (statsResponse.status === 401 && !isRetry) {
-                        clearUmamiShareCache();
-                        return fetchPageViews(true);
-                    }
-                    throw new Error('获取统计数据失败');
+                if (statsResponse.status === 401 && !isRetry) {
+                    clearUmamiShareCache();
+                    return fetchPageViews(true);
                 }
                 
+                if (!statsResponse.ok) throw new Error('API Error');
+                
                 const statsData = await statsResponse.json();
-                const pageViews = statsData.pageviews.value || 0;
-                const visits = statsData.visitors.value || 0;
+                // 4. 兼容 Umami Cloud v2 数据结构 (pageviews.value)
+                const pageViews = statsData.pageviews?.value || statsData.pageviews || 0;
+                const visits = statsData.visitors?.value || statsData.visitors || 0;
                 
                 const displayElement = document.getElementById('page-views-display');
                 if (displayElement) {
