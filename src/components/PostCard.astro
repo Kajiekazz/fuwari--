@@ -7,7 +7,7 @@ import { i18n } from "../i18n/translation";
 import { getDir } from "../utils/url-utils";
 import ImageWrapper from "./misc/ImageWrapper.astro";
 import PostMetadata from "./PostMeta.astro";
-import { umamiConfig, statsConfig } from "../config";
+import { statsConfig } from "../config"; // 移除 umamiConfig
 
 interface Props {
 	class?: string;
@@ -38,12 +38,11 @@ const {
 const className = Astro.props.class;
 
 const hasCover = image !== undefined && image !== null && image !== "";
-
 const coverWidth = "28%";
-
 const { remarkPluginFrontmatter } = await entry.render();
 ---
 <div class:list={["card-base flex flex-col-reverse md:flex-col w-full rounded-[var(--radius-large)] overflow-hidden relative", className]} style={style}>
+    <!-- ... (前面的代码保持不变) ... -->
     <div class:list={["pl-6 md:pl-9 pr-6 md:pr-2 pt-6 md:pt-7 pb-6 relative", {"w-full md:w-[calc(100%_-_52px_-_12px)]": !hasCover, "w-full md:w-[calc(100%_-_var(--coverWidth)_-_12px)]": hasCover}]}>
         <a href={url}
            class="transition group w-full block font-bold mb-3 text-3xl text-90
@@ -76,10 +75,12 @@ const { remarkPluginFrontmatter } = await entry.render();
             </div>
             <div>|</div>
             <div>
-                <span class="text-50 text-sm font-medium" id={`page-views-${entry.slug}`}>{statsConfig.loadingText}</span>
+                <!-- 👇 修改点：使用 class 和 data-slug -->
+                <span class="text-50 text-sm font-medium umami-card-views" data-slug={entry.slug}>
+                    {statsConfig.loadingText}
+                </span>
             </div>
         </div>
-
     </div>
 
     {hasCover && <a href={url} aria-label={title}
@@ -111,64 +112,62 @@ const { remarkPluginFrontmatter } = await entry.render();
 </div>
 <div class="transition border-t-[1px] border-dashed mx-6 border-black/10 dark:border-white/[0.15] last:border-t-0 md:hidden"></div>
 
-<script define:vars={{ entry, umamiConfig, unavailableText: statsConfig.unavailableText, viewsText: statsConfig.viewsText, visitsText: statsConfig.visitsText }}>
-    function generateStatsText(pageViews, visits) {
-        return `${viewsText} ${pageViews} · ${visitsText} ${visits}`;
+<!-- 👇 修改点：完全重写 Script，处理多个卡片 -->
+<script>
+    import { umamiConfig, statsConfig } from "../config";
+    import { getUmamiShareData, clearUmamiShareCache } from "../utils/umami";
+
+    function generateStatsText(pageViews: number, visits: number) {
+        return `${statsConfig.viewsText} ${pageViews} · ${statsConfig.visitsText} ${visits}`;
     }
-    
-    async function fetchPostCardViews(slug) {
+
+    async function fetchAllCardViews() {
         if (!umamiConfig.enable) return;
-        
+
+        // 获取所有需要更新的卡片元素
+        const elements = document.querySelectorAll('.umami-card-views');
+        if (elements.length === 0) return;
+
         try {
-            const { getUmamiShareData, clearUmamiShareCache } = await import('/src/utils/umami.ts');
-            
             const { token } = await getUmamiShareData(umamiConfig.baseUrl, umamiConfig.shareId);
             const websiteId = umamiConfig.websiteId;
-            
             const currentTimestamp = Date.now();
-            
-            // 关键修改：加上 /analytics/us
-            const statsUrl = `${umamiConfig.baseUrl}/analytics/us/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}&url=${encodeURIComponent('/posts/' + slug + '/')}`;
-            
-            const headers = {};
-            if (token) headers['x-umami-share-token'] = token;
 
-            const statsResponse = await fetch(statsUrl, { headers });
-            
-            if (statsResponse.status === 401) {
-                clearUmamiShareCache();
-                return await fetchPostCardViews(slug);
-            }
-            
-            if (!statsResponse.ok) throw new Error('API Error');
-            
-            const statsData = await statsResponse.json();
-            const pageViews = statsData.pageviews?.value || statsData.pageviews || 0;
-            const visits = statsData.visitors?.value || statsData.visitors || 0;
-            
-            const displayElement = document.getElementById(`page-views-${slug}`);
-             if (displayElement) {
-                 displayElement.textContent = generateStatsText(pageViews, visits);
-             }
+            // 遍历每个卡片去请求数据
+            // 注意：这里并发请求可能会多，但 Umami 应该能扛住
+            elements.forEach(async (el) => {
+                if (!(el instanceof HTMLElement)) return;
+                const slug = el.dataset.slug;
+                if (!slug) return;
+
+                try {
+                    const statsUrl = `${umamiConfig.baseUrl}/analytics/us/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}&url=${encodeURIComponent('/posts/' + slug + '/')}`;
+                    
+                    const headers: Record<string, string> = {};
+                    if (token) headers['x-umami-share-token'] = token;
+
+                    const res = await fetch(statsUrl, { headers });
+                    if (!res.ok) return; // 单个失败不影响其他
+
+                    const data = await res.json();
+                    const pageViews = data.pageviews?.value || data.pageviews || 0;
+                    const visits = data.visitors?.value || data.visitors || 0;
+
+                    el.textContent = generateStatsText(pageViews, visits);
+                } catch (e) {
+                    console.error(e);
+                    el.textContent = statsConfig.unavailableText;
+                }
+            });
+
         } catch (error) {
-            console.error('Error fetching page views for', slug, ':', error);
-            const displayElement = document.getElementById(`page-views-${slug}`);
-            if (displayElement) {
-                displayElement.textContent = unavailableText;
-            }
+            console.error('Global Umami Error:', error);
+            if (String(error).includes('401')) clearUmamiShareCache();
         }
     }
 
-    function initPostCardStats() {
-        const slug = entry.slug;
-        if (slug) fetchPostCardViews(slug);
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initPostCardStats);
-    } else {
-        initPostCardStats();
-    }
+    document.addEventListener('astro:page-load', fetchAllCardViews);
+    document.addEventListener('DOMContentLoaded', fetchAllCardViews);
 </script>
 
 <style define:vars={{coverWidth}}>

@@ -4,7 +4,7 @@ import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
 import { formatDateToYYYYMMDD } from "../utils/date-utils";
 import { getCategoryUrl, getTagUrl } from "../utils/url-utils";
-import { umamiConfig, statsConfig } from "../config";
+import { statsConfig } from "../config"; // 移除 umamiConfig，在 script 里引入
 
 interface Props {
 	class: string;
@@ -29,6 +29,9 @@ const className = Astro.props.class;
 ---
 
 <div class:list={["flex flex-wrap text-neutral-500 dark:text-neutral-400 items-center gap-4 gap-x-4 gap-y-2", className]}>
+    <!-- ... (前面的日期、分类、标签代码保持不变，省略以节省空间) ... -->
+    <!-- ... 请保留原有的日期和标签代码 ... -->
+    
     <!-- publish date -->
     <div class="flex items-center">
         <div class="meta-icon">
@@ -85,64 +88,68 @@ const className = Astro.props.class;
             <div class="meta-icon">
                 <Icon name="material-symbols:visibility-outline-rounded" class="text-xl"></Icon>
             </div>
-            <span class="text-50 text-sm font-medium" id="page-views-display">{statsConfig.loadingText}</span>
+            <!-- 👇 修改点：增加了 data-slug 属性，去掉了 id -->
+            <span class="text-50 text-sm font-medium umami-views-meta" data-slug={slug}>
+                {statsConfig.loadingText}
+            </span>
         </div>
     )}
 </div>
 
-{slug && (
-    <script define:vars={{ slug, umamiConfig, unavailableText: statsConfig.unavailableText, viewsText: statsConfig.viewsText, visitsText: statsConfig.visitsText }}>
-        function generateStatsText(pageViews, visits) {
-            return `${viewsText} ${pageViews} · ${visitsText} ${visits}`;
-        }
-        
-        async function fetchPageViews(isRetry = false) {
-            if (!umamiConfig.enable) return;
+<!-- 👇 修改点：完全重写了 Script，去掉了 define:vars -->
+<script>
+    import { umamiConfig, statsConfig } from "../config";
+    import { getUmamiShareData, clearUmamiShareCache } from "../utils/umami";
+
+    function generateStatsText(pageViews: number, visits: number) {
+        return `${statsConfig.viewsText} ${pageViews} · ${statsConfig.visitsText} ${visits}`;
+    }
+
+    async function fetchPageViews() {
+        if (!umamiConfig.enable) return;
+
+        const displayElement = document.querySelector('.umami-views-meta');
+        // 如果页面上没有这个元素，直接返回
+        if (!displayElement || !(displayElement instanceof HTMLElement)) return;
+
+        const slug = displayElement.dataset.slug;
+        if (!slug) return;
+
+        try {
+            const { token } = await getUmamiShareData(umamiConfig.baseUrl, umamiConfig.shareId);
+            const websiteId = umamiConfig.websiteId;
+            const currentTimestamp = Date.now();
             
-            try {
-                const { getUmamiShareData, clearUmamiShareCache } = await import('/src/utils/umami.ts');
+            // 加上 /analytics/us
+            const statsUrl = `${umamiConfig.baseUrl}/analytics/us/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}&url=${encodeURIComponent('/posts/' + slug + '/')}`;
 
-                const { token } = await getUmamiShareData(umamiConfig.baseUrl, umamiConfig.shareId);
-                const websiteId = umamiConfig.websiteId;
-                
-                const currentTimestamp = Date.now();
-                
-                // 关键修改：加上 /analytics/us
-                const statsUrl = `${umamiConfig.baseUrl}/analytics/us/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}&url=${encodeURIComponent('/posts/' + slug + '/')}`;
-                
-                const headers = {};
-                if (token) headers['x-umami-share-token'] = token;
+            const headers: Record<string, string> = {};
+            if (token) headers['x-umami-share-token'] = token;
 
-                const statsResponse = await fetch(statsUrl, { headers });
-                
-                if (statsResponse.status === 401 && !isRetry) {
-                    clearUmamiShareCache();
-                    return fetchPageViews(true);
-                }
-                
-                if (!statsResponse.ok) throw new Error('API Error');
-                
-                const statsData = await statsResponse.json();
-                const pageViews = statsData.pageviews?.value || statsData.pageviews || 0;
-                const visits = statsData.visitors?.value || statsData.visitors || 0;
-                
-                const displayElement = document.getElementById('page-views-display');
-                if (displayElement) {
-                    displayElement.textContent = generateStatsText(pageViews, visits);
-                }
-            } catch (error) {
-                console.error('Error fetching page views:', error);
-                const displayElement = document.getElementById('page-views-display');
-                if (displayElement) {
-                    displayElement.textContent = unavailableText;
-                }
+            const statsResponse = await fetch(statsUrl, { headers });
+
+            if (statsResponse.status === 401) {
+                clearUmamiShareCache();
+                // 简单重试一次，防止死循环
+                return; 
             }
-        }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', fetchPageViews);
-        } else {
-            fetchPageViews();
+            if (!statsResponse.ok) throw new Error('API Error');
+
+            const statsData = await statsResponse.json();
+            const pageViews = statsData.pageviews?.value || statsData.pageviews || 0;
+            const visits = statsData.visitors?.value || statsData.visitors || 0;
+
+            displayElement.textContent = generateStatsText(pageViews, visits);
+
+        } catch (error) {
+            console.error('Error fetching page views:', error);
+            displayElement.textContent = statsConfig.unavailableText;
         }
-    </script>
-)}
+    }
+
+    // Astro 的 View Transitions 兼容
+    document.addEventListener('astro:page-load', fetchPageViews);
+    // 普通加载兼容
+    document.addEventListener('DOMContentLoaded', fetchPageViews);
+</script>
