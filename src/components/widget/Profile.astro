@@ -67,7 +67,7 @@ const config = profileConfig;
             const websiteId = umamiConfig.websiteId;
             const currentTimestamp = Date.now();
             
-            const statsUrl = `${umamiConfig.baseUrl}/analytics/us/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}`;
+            const statsUrl = `${umamiConfig.baseUrl}/analytics/eu/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}`;
             
             const headers: Record<string, string> = {};
             if (token) headers['x-umami-share-token'] = token;

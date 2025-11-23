@@ -19,11 +19,11 @@ export async function getUmamiShareData(baseUrl: string, shareId: string): Promi
 
   // 2. 如果没有缓存，请求 share 接口获取 token
   try {
-    // 关键修改：Umami Cloud 需要加上 /analytics/us
-    const response = await fetch(`${baseUrl}/analytics/us/api/share/${shareId}`);
+    // 关键修改：Umami Cloud 需要加上 /analytics/eu
+    const response = await fetch(`${baseUrl}/analytics/eu/api/share/${shareId}`);
     
     if (!response.ok) {
-      // 兼容性尝试：如果带 /analytics/us 失败，尝试标准路径（防止未来变动）
+      // 兼容性尝试：如果带 /analytics/eu 失败，尝试标准路径（防止未来变动）
       const fallbackResponse = await fetch(`${baseUrl}/api/share/${shareId}`);
       if (fallbackResponse.ok) {
           const data = await fallbackResponse.json();
