@@ -53,6 +53,7 @@ export const siteConfig: SiteConfig = {
 			//   sizes: '32x32',              // (Optional) Size of the favicon, set only if you have favicons of different sizes
 		},
 	],
+	repoUrl: "https://github.com/Kajiekazz/fuwari--", 
 };
 
 export const navBarConfig: NavBarConfig = {
@@ -114,7 +115,18 @@ export const expressiveCodeConfig: ExpressiveCodeConfig = {
 export const statsConfig = {
 	viewsText: "浏览",
 	visitsText: "访客",
-	loadingText: "统计加载中...",
-	unavailableText: "统计不可用。请检查是否屏蔽了Umami域名，如AdGuard和AdBlock等插件",
-	getStatsText: (pageViews: number, visits: number) => `${statsConfig.viewsText} ${pageViews} · ${statsConfig.visitsText} ${visits}`,
+	loadingText: "...",
+	unavailableText: "-",
+};
+
+export const umamiConfig = {
+  enable: true,
+  baseUrl: "https://cloud.umami.is", 
+  shareId: "310b95a5-41a7-4032-9118-54960f6bb57b", 
+  timezone: "Asia/Shanghai",
+}
+
+export const gitHubEditConfig = {
+  enable: true,
+  baseUrl: "https://github.com/Kajiekazz/fuwari--/blob/main/src/content/posts",
 };

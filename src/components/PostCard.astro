@@ -7,6 +7,7 @@ import { i18n } from "../i18n/translation";
 import { getDir } from "../utils/url-utils";
 import ImageWrapper from "./misc/ImageWrapper.astro";
 import PostMetadata from "./PostMeta.astro";
+import { umamiConfig, statsConfig } from "../config"; // 新增引用
 
 interface Props {
 	class?: string;
@@ -56,15 +57,15 @@ const { remarkPluginFrontmatter } = await entry.render();
             <Icon class="text-[var(--primary)] text-[2rem] transition hidden md:inline absolute translate-y-0.5 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0" name="material-symbols:chevron-right-rounded"></Icon>
         </a>
 
-        <!-- metadata -->
-        <PostMetadata published={published} updated={updated} tags={tags} category={category} hideTagsForMobile={true} hideUpdateDate={true} class="mb-4"></PostMetadata>
+        <!-- metadata: 传入 slug -->
+        <PostMetadata published={published} updated={updated} tags={tags} category={category} hideTagsForMobile={true} hideUpdateDate={true} class="mb-4" slug={entry.slug}></PostMetadata>
 
         <!-- description -->
         <div class:list={["transition text-75 mb-3.5 pr-4", {"line-clamp-2 md:line-clamp-1": !description}]}>
             { description || remarkPluginFrontmatter.excerpt }
         </div>
 
-        <!-- word count and read time  -->
+        <!-- word count, read time and page views (修改部分) -->
         <div class="text-sm text-black/30 dark:text-white/30 flex gap-4 transition">
             <div>
                 {remarkPluginFrontmatter.words} {" " + i18n(remarkPluginFrontmatter.words === 1 ? I18nKey.wordCount : I18nKey.wordsCount)}
@@ -72,6 +73,11 @@ const { remarkPluginFrontmatter } = await entry.render();
             <div>|</div>
             <div>
                 {remarkPluginFrontmatter.minutes} {" " + i18n(remarkPluginFrontmatter.minutes === 1 ? I18nKey.minuteCount : I18nKey.minutesCount)}
+            </div>
+            <!-- 新增浏览量 -->
+            <div>|</div>
+            <div>
+                <span class="text-50 text-sm font-medium" id={`page-views-${entry.slug}`}>{statsConfig.loadingText}</span>
             </div>
         </div>
 
@@ -105,6 +111,65 @@ const { remarkPluginFrontmatter } = await entry.render();
     }
 </div>
 <div class="transition border-t-[1px] border-dashed mx-6 border-black/10 dark:border-white/[0.15] last:border-t-0 md:hidden"></div>
+
+<!-- Script (新增部分) -->
+<script define:vars={{ entry, umamiConfig, unavailableText: statsConfig.unavailableText, viewsText: statsConfig.viewsText, visitsText: statsConfig.visitsText }}>
+    function generateStatsText(pageViews, visits) {
+        return `${viewsText} ${pageViews} · ${visitsText} ${visits}`;
+    }
+    
+    async function fetchPostCardViews(slug) {
+        if (!umamiConfig.enable) return;
+        
+        try {
+            // 动态导入工具函数
+            const { getUmamiShareData, clearUmamiShareCache } = await import('/src/utils/umami.ts');
+            
+            const { websiteId, token } = await getUmamiShareData(umamiConfig.baseUrl, umamiConfig.shareId);
+            
+            const currentTimestamp = Date.now();
+            const statsUrl = `${umamiConfig.baseUrl}/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}&url=${encodeURIComponent('/posts/' + slug + '/')}`;
+            
+            const headers = {};
+            if (token) headers['x-umami-share-token'] = token;
+
+            const statsResponse = await fetch(statsUrl, { headers });
+            
+            if (statsResponse.status === 401) {
+                clearUmamiShareCache();
+                return await fetchPostCardViews(slug);
+            }
+            
+            if (!statsResponse.ok) throw new Error('获取统计数据失败');
+            
+            const statsData = await statsResponse.json();
+            const pageViews = statsData.pageviews.value || 0;
+            const visits = statsData.visitors.value || 0;
+            
+            const displayElement = document.getElementById(`page-views-${slug}`);
+             if (displayElement) {
+                 displayElement.textContent = generateStatsText(pageViews, visits);
+             }
+        } catch (error) {
+            console.error('Error fetching page views for', slug, ':', error);
+            const displayElement = document.getElementById(`page-views-${slug}`);
+            if (displayElement) {
+                displayElement.textContent = unavailableText;
+            }
+        }
+    }
+
+    function initPostCardStats() {
+        const slug = entry.slug;
+        if (slug) fetchPostCardViews(slug);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPostCardStats);
+    } else {
+        initPostCardStats();
+    }
+</script>
 
 <style define:vars={{coverWidth}}>
 </style>

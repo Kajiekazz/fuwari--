@@ -77,6 +77,13 @@ export type LicenseConfig = {
 	url: string;
 };
 
+export type UmamiConfig = {
+	enable: boolean;
+	baseUrl: string;
+	shareId: string;
+	timezone: string;
+};
+
 export type LIGHT_DARK_MODE =
 	| typeof LIGHT_MODE
 	| typeof DARK_MODE
@@ -99,4 +106,9 @@ export type BlogPostData = {
 
 export type ExpressiveCodeConfig = {
 	theme: string;
+};
+
+export type GitHubEditConfig = {
+	enable: boolean;
+	baseUrl: string;
 };
