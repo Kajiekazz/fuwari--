@@ -7,7 +7,7 @@ import { i18n } from "../i18n/translation";
 import { getDir } from "../utils/url-utils";
 import ImageWrapper from "./misc/ImageWrapper.astro";
 import PostMetadata from "./PostMeta.astro";
-import { statsConfig } from "../config"; // 移除 umamiConfig
+import { statsConfig } from "../config";
 
 interface Props {
 	class?: string;
@@ -42,7 +42,6 @@ const coverWidth = "28%";
 const { remarkPluginFrontmatter } = await entry.render();
 ---
 <div class:list={["card-base flex flex-col-reverse md:flex-col w-full rounded-[var(--radius-large)] overflow-hidden relative", className]} style={style}>
-    <!-- ... (前面的代码保持不变) ... -->
     <div class:list={["pl-6 md:pl-9 pr-6 md:pr-2 pt-6 md:pt-7 pb-6 relative", {"w-full md:w-[calc(100%_-_52px_-_12px)]": !hasCover, "w-full md:w-[calc(100%_-_var(--coverWidth)_-_12px)]": hasCover}]}>
         <a href={url}
            class="transition group w-full block font-bold mb-3 text-3xl text-90
@@ -56,15 +55,12 @@ const { remarkPluginFrontmatter } = await entry.render();
             <Icon class="text-[var(--primary)] text-[2rem] transition hidden md:inline absolute translate-y-0.5 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0" name="material-symbols:chevron-right-rounded"></Icon>
         </a>
 
-        <!-- metadata -->
         <PostMetadata published={published} updated={updated} tags={tags} category={category} hideTagsForMobile={true} hideUpdateDate={true} class="mb-4" slug={entry.slug}></PostMetadata>
 
-        <!-- description -->
         <div class:list={["transition text-75 mb-3.5 pr-4", {"line-clamp-2 md:line-clamp-1": !description}]}>
             { description || remarkPluginFrontmatter.excerpt }
         </div>
 
-        <!-- word count, read time and page views -->
         <div class="text-sm text-black/30 dark:text-white/30 flex gap-4 transition">
             <div>
                 {remarkPluginFrontmatter.words} {" " + i18n(remarkPluginFrontmatter.words === 1 ? I18nKey.wordCount : I18nKey.wordsCount)}
@@ -75,7 +71,6 @@ const { remarkPluginFrontmatter } = await entry.render();
             </div>
             <div>|</div>
             <div>
-                <!-- 👇 修改点：使用 class 和 data-slug -->
                 <span class="text-50 text-sm font-medium umami-card-views" data-slug={entry.slug}>
                     {statsConfig.loadingText}
                 </span>
@@ -112,7 +107,6 @@ const { remarkPluginFrontmatter } = await entry.render();
 </div>
 <div class="transition border-t-[1px] border-dashed mx-6 border-black/10 dark:border-white/[0.15] last:border-t-0 md:hidden"></div>
 
-<!-- 👇 修改点：完全重写 Script，处理多个卡片 -->
 <script>
     import { umamiConfig, statsConfig } from "../config";
     import { getUmamiShareData, clearUmamiShareCache } from "../utils/umami";
@@ -124,34 +118,36 @@ const { remarkPluginFrontmatter } = await entry.render();
     async function fetchAllCardViews() {
         if (!umamiConfig.enable) return;
 
-        // 获取所有需要更新的卡片元素
         const elements = document.querySelectorAll('.umami-card-views');
         if (elements.length === 0) return;
 
         try {
+            // 1. 获取 token
             const { token } = await getUmamiShareData(umamiConfig.baseUrl, umamiConfig.shareId);
+            // 2. 直接从配置读取 ID，避免 undefined
             const websiteId = umamiConfig.websiteId;
             const currentTimestamp = Date.now();
 
-            // 遍历每个卡片去请求数据
-            // 注意：这里并发请求可能会多，但 Umami 应该能扛住
             elements.forEach(async (el) => {
                 if (!(el instanceof HTMLElement)) return;
                 const slug = el.dataset.slug;
                 if (!slug) return;
 
                 try {
-                    const statsUrl = `${umamiConfig.baseUrl}/analytics/eu/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}&url=${encodeURIComponent('/posts/' + slug + '/')}`;
+                    // 3. 使用精确匹配 eq.
+                    const targetPath = `eq./posts/${slug}/`;
+                    const statsUrl = `${umamiConfig.baseUrl}/analytics/eu/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&path=${encodeURIComponent(targetPath)}`;
                     
                     const headers: Record<string, string> = {};
                     if (token) headers['x-umami-share-token'] = token;
 
                     const res = await fetch(statsUrl, { headers });
-                    if (!res.ok) return; // 单个失败不影响其他
+                    if (!res.ok) return;
 
                     const data = await res.json();
-                    const pageViews = data.pageviews?.value || data.pageviews || 0;
-                    const visits = data.visitors?.value || data.visitors || 0;
+                    
+                    const pageViews = data.pageviews?.value ?? data.pageviews ?? 0;
+                    const visits = data.visitors?.value ?? data.visitors ?? 0;
 
                     el.textContent = generateStatsText(pageViews, visits);
                 } catch (e) {

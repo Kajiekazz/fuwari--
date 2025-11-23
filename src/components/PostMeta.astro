@@ -4,7 +4,7 @@ import I18nKey from "../i18n/i18nKey";
 import { i18n } from "../i18n/translation";
 import { formatDateToYYYYMMDD } from "../utils/date-utils";
 import { getCategoryUrl, getTagUrl } from "../utils/url-utils";
-import { statsConfig } from "../config"; // 移除 umamiConfig，在 script 里引入
+import { statsConfig } from "../config";
 
 interface Props {
 	class: string;
@@ -29,10 +29,6 @@ const className = Astro.props.class;
 ---
 
 <div class:list={["flex flex-wrap text-neutral-500 dark:text-neutral-400 items-center gap-4 gap-x-4 gap-y-2", className]}>
-    <!-- ... (前面的日期、分类、标签代码保持不变，省略以节省空间) ... -->
-    <!-- ... 请保留原有的日期和标签代码 ... -->
-    
-    <!-- publish date -->
     <div class="flex items-center">
         <div class="meta-icon">
             <Icon name="material-symbols:calendar-today-outline-rounded" class="text-xl"></Icon>
@@ -40,7 +36,6 @@ const className = Astro.props.class;
         <span class="text-50 text-sm font-medium">{formatDateToYYYYMMDD(published)}</span>
     </div>
 
-    <!-- update date -->
     {!hideUpdateDate && updated && updated.getTime() !== published.getTime() && (
         <div class="flex items-center">
             <div class="meta-icon">
@@ -50,7 +45,6 @@ const className = Astro.props.class;
         </div>
     )}
 
-    <!-- categories -->
     <div class="flex items-center">
         <div class="meta-icon">
             <Icon name="material-symbols:book-2-outline-rounded" class="text-xl"></Icon>
@@ -64,7 +58,6 @@ const className = Astro.props.class;
         </div>
     </div>
 
-    <!-- tags -->
     <div class:list={["items-center", {"flex": !hideTagsForMobile, "hidden md:flex": hideTagsForMobile}]}>
         <div class="meta-icon">
             <Icon name="material-symbols:tag-rounded" class="text-xl"></Icon>
@@ -82,13 +75,11 @@ const className = Astro.props.class;
         </div>
     </div>
 
-    <!-- page views -->
     {slug && (
         <div class="flex items-center">
             <div class="meta-icon">
                 <Icon name="material-symbols:visibility-outline-rounded" class="text-xl"></Icon>
             </div>
-            <!-- 👇 修改点：增加了 data-slug 属性，去掉了 id -->
             <span class="text-50 text-sm font-medium umami-views-meta" data-slug={slug}>
                 {statsConfig.loadingText}
             </span>
@@ -96,7 +87,6 @@ const className = Astro.props.class;
     )}
 </div>
 
-<!-- 👇 修改点：完全重写了 Script，去掉了 define:vars -->
 <script>
     import { umamiConfig, statsConfig } from "../config";
     import { getUmamiShareData, clearUmamiShareCache } from "../utils/umami";
@@ -109,7 +99,6 @@ const className = Astro.props.class;
         if (!umamiConfig.enable) return;
 
         const displayElement = document.querySelector('.umami-views-meta');
-        // 如果页面上没有这个元素，直接返回
         if (!displayElement || !(displayElement instanceof HTMLElement)) return;
 
         const slug = displayElement.dataset.slug;
@@ -117,11 +106,13 @@ const className = Astro.props.class;
 
         try {
             const { token } = await getUmamiShareData(umamiConfig.baseUrl, umamiConfig.shareId);
+            // 直接从配置读取 ID
             const websiteId = umamiConfig.websiteId;
             const currentTimestamp = Date.now();
             
-            // 加上 /analytics/eu
-            const statsUrl = `${umamiConfig.baseUrl}/analytics/eu/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&unit=hour&timezone=${encodeURIComponent(umamiConfig.timezone)}&url=${encodeURIComponent('/posts/' + slug + '/')}`;
+            // 精确匹配
+            const targetPath = `eq./posts/${slug}/`;
+            const statsUrl = `${umamiConfig.baseUrl}/analytics/eu/api/websites/${websiteId}/stats?startAt=0&endAt=${currentTimestamp}&path=${encodeURIComponent(targetPath)}`;
 
             const headers: Record<string, string> = {};
             if (token) headers['x-umami-share-token'] = token;
@@ -130,15 +121,15 @@ const className = Astro.props.class;
 
             if (statsResponse.status === 401) {
                 clearUmamiShareCache();
-                // 简单重试一次，防止死循环
                 return; 
             }
 
             if (!statsResponse.ok) throw new Error('API Error');
 
             const statsData = await statsResponse.json();
-            const pageViews = statsData.pageviews?.value || statsData.pageviews || 0;
-            const visits = statsData.visitors?.value || statsData.visitors || 0;
+            
+            const pageViews = statsData.pageviews?.value ?? statsData.pageviews ?? 0;
+            const visits = statsData.visitors?.value ?? statsData.visitors ?? 0;
 
             displayElement.textContent = generateStatsText(pageViews, visits);
 
@@ -148,8 +139,6 @@ const className = Astro.props.class;
         }
     }
 
-    // Astro 的 View Transitions 兼容
     document.addEventListener('astro:page-load', fetchPageViews);
-    // 普通加载兼容
     document.addEventListener('DOMContentLoaded', fetchPageViews);
 </script>
