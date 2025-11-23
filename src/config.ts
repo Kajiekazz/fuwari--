@@ -115,14 +115,14 @@ export const expressiveCodeConfig: ExpressiveCodeConfig = {
 export const statsConfig = {
 	viewsText: "浏览",
 	visitsText: "访客",
-	loadingText: "...",
-	unavailableText: "-",
+	loadingText: "fucking loading...",
+	unavailableText: "统计不可用",
 };
 
 export const umamiConfig = {
   enable: true,
   baseUrl: "https://cloud.umami.is", 
-  shareId: "310b95a5-41a7-4032-9118-54960f6bb57b", 
+  shareId: "2g9iwbTAZ1Q9f4J1", 
   timezone: "Asia/Shanghai",
 }
 
