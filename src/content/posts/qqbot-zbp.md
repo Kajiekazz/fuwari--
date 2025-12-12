@@ -228,7 +228,7 @@ git clone https://github.com/FloatTech/ZeroBot-Plugin-Playground.git
 ### 4. 唤醒生命 (运行)
 在项目根目录下双击`run.bat`：
 ![](https://cloud.guguwo.top/d/picture-bed/20251212182642579.webp)
-如果不报错，你的专属魔改版 Bot 就诞生啦！(≧∇≦)ﾉ
+如果不报错，您的专属魔改版 Bot 就诞生啦！(≧∇≦)ﾉ
 
 ---
 
@@ -240,7 +240,7 @@ A:
 2. URL 和 Token 是不是复制多了空格？
 3. 试着对她说 `/响应` 激活一下？(新 Bot 往往比较害羞)
 
-**Q: 点歌功能没反应？**
+**Q: 猜歌/发图功能没反应？**
 A: 可能是 **音乐签名 URL** (第一章第2步) 没填对，或者网络卡顿，稍等一下再试。
 
 **Q: 怎么看她有哪些功能？**
