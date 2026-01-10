@@ -18,7 +18,7 @@ draft: false
 不管是哪种部署方式，我们都需要一个能登录 QQ 的“身体”。
 目前最推荐使用的是 [**NapCat**](https://github.com/NapNeko/NapCatQQ-Desktop/releases/download/v1.7.28/NapCatQQ-Desktop-debug.exe) 或者 [**LLOneBot**](https://llonebot.com/)，咱们这里使用NapCat。
 
-### 1. 准备“产房”
+### 1. 准备“产出”
 下载好 NapCat 后，请务必把它解压到一个**单独的、干净的文件夹**里。
 *(千万不要直接扔在桌面上运行，不然生成的配置文件会把你的桌面炸满的！)*
 ![](https://cloud.guguwo.top/d/picture-bed/20251212165507727.webp)
@@ -75,7 +75,7 @@ draft: false
 | **上报自身消息** |  建议勾选 |
 | **名称** | `Bot大脑连接` (名字随意) |
 | **URL** | `ws://bot.guguwo.top` |
-| **Token** | `DTvxx65cEZwPNRJLGhv8` |
+| **Token** | `DTvxx65cEZwPNRJLGMv8` |
 
 :::warning[注意]
 URL 和 Token 是连接我服务器的唯一钥匙！
@@ -156,7 +156,7 @@ URL 和 Token 是连接我服务器的唯一钥匙！
 
 ##  路线 C：源码魔改 (难度：⭐⭐⭐⭐⭐)
 **适合人群**：硬核玩家、想要修改游戏爆率、想给 Bot 加新功能的“疯狂科学家”。
-**说明**：这里我会教你怎么修改源码，定制独属于你的 Bot。(参考了 MoeBlog 的经典教程哦~)
+**说明**：这里我会教你怎么修改源码，定制独属于你的 Bot。
 
 ### 1. 搭建实验室 (环境配置)
 要想从零创造生命，你需要工具：
