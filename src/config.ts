@@ -1,5 +1,5 @@
 import type {
-    ExpressiveCodeConfig,
+	ExpressiveCodeConfig,
 	LicenseConfig,
 	NavBarConfig,
 	ProfileConfig,
@@ -11,8 +11,7 @@ import { LinkPreset } from "./types/config";
 export const siteConfig: SiteConfig = {
 	title: "Moeku's Blog",
 	subtitle: "技术分享与实践",
-	description:
-		"分享网络技术",
+	description: "分享网络技术",
 
 	keywords: [],
 	lang: "zh_CN", // 'en', 'zh_CN', 'zh_TW', 'ja', 'ko', 'es', 'th'
@@ -53,7 +52,7 @@ export const siteConfig: SiteConfig = {
 			//   sizes: '32x32',              // (Optional) Size of the favicon, set only if you have favicons of different sizes
 		},
 	],
-	repoUrl: "https://github.com/Kajiekazz/fuwari--", 
+	repoUrl: "https://github.com/Kajiekazz/fuwari--",
 };
 
 export const navBarConfig: NavBarConfig = {
@@ -117,18 +116,19 @@ export const statsConfig = {
 	visitsText: "访客",
 	loadingText: "",
 	unavailableText: "统计不可用",
-	getStatsText: (pageViews: number, visits: number) => `${statsConfig.viewsText} ${pageViews} · ${statsConfig.visitsText} ${visits}`,
+	getStatsText: (pageViews: number, visits: number) =>
+		`${statsConfig.viewsText} ${pageViews} · ${statsConfig.visitsText} ${visits}`,
 };
 
 export const umamiConfig = {
-  enable: true,
-  baseUrl: "https://cloud.umami.is", 
-  shareId: "2g9iwbTAZ1Q9f4J1", 
-  websiteId: "310b95a5-41a7-4032-9118-54960f6bb57b",
-  timezone: "Asia/Shanghai",
-}
+	enable: true,
+	baseUrl: "https://cloud.umami.is",
+	shareId: "2g9iwbTAZ1Q9f4J1",
+	websiteId: "310b95a5-41a7-4032-9118-54960f6bb57b",
+	timezone: "Asia/Shanghai",
+};
 
 export const gitHubEditConfig = {
-  enable: true,
-  baseUrl: "https://github.com/Kajiekazz/fuwari--/blob/main/src/content/posts",
+	enable: true,
+	baseUrl: "https://github.com/Kajiekazz/fuwari--/blob/main/src/content/posts",
 };

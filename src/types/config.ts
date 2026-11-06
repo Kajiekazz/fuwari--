@@ -3,6 +3,8 @@ import type { AUTO_MODE, DARK_MODE, LIGHT_MODE } from "@constants/constants";
 export type SiteConfig = {
 	title: string;
 	subtitle: string;
+	description?: string;
+	keywords?: string[];
 
 	lang:
 		| "en"
@@ -30,12 +32,22 @@ export type SiteConfig = {
 			url?: string;
 		};
 	};
+	background: {
+		enable: boolean;
+		src: string;
+		position?: "top" | "center" | "bottom";
+		size?: string;
+		repeat?: string;
+		attachment?: string;
+		opacity?: number;
+	};
 	toc: {
 		enable: boolean;
 		depth: 1 | 2 | 3;
 	};
 
 	favicon: Favicon[];
+	repoUrl?: string;
 };
 
 export type Favicon = {
@@ -82,7 +94,7 @@ export type UmamiConfig = {
 	baseUrl: string;
 	shareId: string;
 	timezone: string;
-    websiteId: string;
+	websiteId: string;
 };
 
 export type LIGHT_DARK_MODE =
