@@ -117,5 +117,22 @@
         overflow-x: auto;
         margin: 1em 0;
     }
-    
+
+    /* Wide tables: keep them inside the article column and scroll sideways
+       instead of stretching the page. The wrapper is injected by
+       src/plugins/rehype-table-wrapper.mjs. */
+    .table-wrapper {
+        @apply my-4 overflow-x-auto overscroll-x-contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: var(--btn-regular-bg-hover) transparent;
+    }
+
+    .table-wrapper > table {
+        @apply my-0;
+        width: max-content;
+        min-width: 100%;
+        max-width: none;
+    }
+
 }

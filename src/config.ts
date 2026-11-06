@@ -115,7 +115,7 @@ export const expressiveCodeConfig: ExpressiveCodeConfig = {
 export const statsConfig = {
 	viewsText: "浏览",
 	visitsText: "访客",
-	loadingText: "fucking loading...",
+	loadingText: "",
 	unavailableText: "统计不可用",
 	getStatsText: (pageViews: number, visits: number) => `${statsConfig.viewsText} ${pageViews} · ${statsConfig.visitsText} ${visits}`,
 };

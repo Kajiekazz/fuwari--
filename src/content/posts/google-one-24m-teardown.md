@@ -4,6 +4,7 @@ published: 2026-11-06
 description: '对一个宣称可零成本叠加 24 个月的订阅自动化脚本做行为取证：先讲清 Play 订阅的顺延机制与试用资格模型，再用四组对照实验证明第二、三层为何不可达，最后给出八个 Playwright 实现陷阱。'
 tags: ["逆向", "Playwright", "Google One", "自动化", "取证"]
 category: '逆向分析'
+image: '/covers/google-one-24m-teardown.svg'
 draft: false
 ---
 
@@ -634,7 +635,7 @@ Google 的订阅价格、支付方式可用性、试用资格都与账号区域�
 
 取证脚本已整理为独立仓库，不含账号、卡号与 Cookie：
 
-::github{repo="Kajiekazz/google-one-trial-lab"}
+仓库地址：[Kajiekazz/google-one-trial-lab](https://github.com/Kajiekazz/google-one-trial-lab)
 
 ```text
 tools/bind_card.py          绑卡，第八节 8.1 - 8.5 均已处理
